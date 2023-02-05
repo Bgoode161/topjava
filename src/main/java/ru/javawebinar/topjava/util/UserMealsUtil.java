@@ -9,6 +9,8 @@ import java.time.LocalTime;
 import java.time.Month;
 import java.util.*;
 
+import static java.util.stream.Collectors.*;
+
 public class UserMealsUtil {
     public static void main(String[] args) {
         List<UserMeal> meals = Arrays.asList(new UserMeal(LocalDateTime.of(2020, Month.JANUARY, 30, 10, 0), "Завтрак", 500),
@@ -23,7 +25,12 @@ public class UserMealsUtil {
         mealsTo.forEach(System.out::println);
 
 
-//        System.out.println(filteredByStreams(meals, LocalTime.of(7, 0), LocalTime.of(12, 0), 2000));
+        System.out.println(filteredByStreams(meals, LocalTime.of(7, 0), LocalTime.of(12, 0), 2000));
+
+        Map<LocalDate, Integer> caloriesPerDate = meals.stream().
+                collect(groupingBy(userMeal -> userMeal.getDateTime().toLocalDate(), summingInt(UserMeal::getCalories)));
+        caloriesPerDate.forEach((k, v) -> System.out.println(k + " " + v));
+
     }
 
 
@@ -32,23 +39,22 @@ public class UserMealsUtil {
         ArrayList<UserMealWithExcess> userMealsWithExcess = new ArrayList<>();
         Map<LocalDate, Integer> caloriesPerDate = new HashMap<>();
         for (UserMeal userMeal : meals) {
-                if (!caloriesPerDate.containsKey(userMeal.getDateTime().toLocalDate())) {
-                    caloriesPerDate.put(userMeal.getDateTime().toLocalDate(), userMeal.getCalories());
-                }
-                else {
-                    Integer caloriesPrev = caloriesPerDate.get(userMeal.getDateTime().toLocalDate());
-                    Integer caloriesSum = userMeal.getCalories() + caloriesPrev;
-                    caloriesPerDate.put(userMeal.getDateTime().toLocalDate(), caloriesSum);
-                }
+            if (!caloriesPerDate.containsKey(userMeal.getDateTime().toLocalDate())) {
+                caloriesPerDate.put(userMeal.getDateTime().toLocalDate(), userMeal.getCalories());
+            } else {
+                Integer caloriesPrev = caloriesPerDate.get(userMeal.getDateTime().toLocalDate());
+                Integer caloriesSum = userMeal.getCalories() + caloriesPrev;
+                caloriesPerDate.put(userMeal.getDateTime().toLocalDate(), caloriesSum);
             }
+        }
 
         for (UserMeal userMeal : meals) {
-              LocalDate key = userMeal.getDateTime().toLocalDate();
-              if (caloriesPerDate.containsKey(key) && caloriesPerDate.get(key) > caloriesPerDay
-                      && TimeUtil.isBetweenHalfOpen(userMeal.getDateTime().toLocalTime(), startTime, endTime)) {
-                  userMealsWithExcess.add(new UserMealWithExcess(userMeal.getDateTime(), userMeal.getDescription(),
-                              userMeal.getCalories(), true));
-              }
+            LocalDate key = userMeal.getDateTime().toLocalDate();
+            if (caloriesPerDate.containsKey(key) && caloriesPerDate.get(key) > caloriesPerDay
+                    && TimeUtil.isBetweenHalfOpen(userMeal.getDateTime().toLocalTime(), startTime, endTime)) {
+                userMealsWithExcess.add(new UserMealWithExcess(userMeal.getDateTime(), userMeal.getDescription(),
+                        userMeal.getCalories(), true));
+            }
         }
 
         return userMealsWithExcess;
@@ -56,6 +62,12 @@ public class UserMealsUtil {
 
     public static List<UserMealWithExcess> filteredByStreams(List<UserMeal> meals, LocalTime startTime, LocalTime endTime, int caloriesPerDay) {
         // TODO Implement by streams
-        return null;
+        Map<LocalDate, Integer> caloriesPerDate = meals.stream().
+                collect(groupingBy(userMeal -> userMeal.getDateTime().toLocalDate(), summingInt(UserMeal::getCalories)));
+        return meals.stream()
+                .filter(userMeal -> TimeUtil.isBetweenHalfOpen(userMeal.getDateTime().toLocalTime(), startTime, endTime))
+                .map(userMeal -> new UserMealWithExcess(userMeal.getDateTime(), userMeal.getDescription(), userMeal.getCalories(),
+                        caloriesPerDate.get(userMeal.getDateTime().toLocalDate()) > caloriesPerDay))
+                .collect(toList());
     }
 }
