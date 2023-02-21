@@ -2,7 +2,9 @@ package ru.javawebinar.topjava.repository;
 
 import ru.javawebinar.topjava.model.Meal;
 
+import java.time.LocalDateTime;
 import java.util.Collection;
+import java.util.List;
 
 // TODO add userId
 public interface MealRepository {
@@ -13,8 +15,10 @@ public interface MealRepository {
     boolean delete(int id, int userId);
 
     // null if meal does not belong to userId
-    Meal get(int id,int userId);
+    Meal get(int id, int userId);
 
     // ORDERED dateTime desc
     Collection<Meal> getAll(int userId);
+
+    List<Meal> getBetweenHalfOpen(LocalDateTime from, LocalDateTime to, Integer userId);
 }
