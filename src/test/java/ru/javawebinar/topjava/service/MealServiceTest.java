@@ -58,11 +58,9 @@ public class MealServiceTest {
         List<Meal> nullFilterActual = mealService.getBetweenInclusive(null, null, USER_ID);
         List<Meal> nullFilterExpected = mealService.getAll(USER_ID);
         assertMatch(nullFilterActual, nullFilterExpected);
-        List<Meal> filteredActual = mealService.getBetweenInclusive(,
-                LocalDate.of(2020, Month.JANUARY, 31), USER_ID);
-        List<Meal> filteredExpected = getFilteredByDateTime(mealsUser, LocalDate.of(2020, Month.JANUARY, 30).atStartOfDay(),
-                LocalDate.of(2020, Month.JANUARY, 31).atStartOfDay());
-        assertMatch(filteredActual, filteredExpected);
+        List<Meal> filteredActual = mealService.getBetweenInclusive( LocalDate.of(2020, Month.JANUARY, 30),
+                LocalDate.of(2020, Month.JANUARY, 30), USER_ID);
+        assertMatch(filteredActual, MEAL3, MEAL2, MEAL1);
     }
 
     @Test
