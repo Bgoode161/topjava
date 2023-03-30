@@ -5,6 +5,9 @@ import org.junit.Rule;
 import org.junit.rules.ExternalResource;
 import org.junit.rules.Stopwatch;
 import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.Profiles;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.jdbc.Sql;
@@ -25,6 +28,9 @@ import static ru.javawebinar.topjava.util.ValidationUtil.getRootCause;
 @ActiveProfiles(resolver = ActiveDbProfileResolver.class)
 public abstract class AbstractServiceTest {
 
+    @Autowired
+    Environment environment;
+
     @ClassRule
     public static ExternalResource summary = TimingRules.SUMMARY;
 
@@ -32,6 +38,12 @@ public abstract class AbstractServiceTest {
     public Stopwatch stopwatch = TimingRules.STOPWATCH;
 
     //  Check root cause in JUnit: https://github.com/junit-team/junit4/pull/778
+
+    protected boolean jpaIsActive() {
+        //return Arrays.asList(environment.getActiveProfiles()).contains("jdbc");
+        return environment.acceptsProfiles(Profiles.of("jpa", "datajpa"));
+    }
+
     protected <T extends Throwable> void validateRootCause(Class<T> rootExceptionClass, Runnable runnable) {
         assertThrows(rootExceptionClass, () -> {
             try {
